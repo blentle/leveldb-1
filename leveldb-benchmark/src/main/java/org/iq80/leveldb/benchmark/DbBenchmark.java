@@ -55,22 +55,19 @@ import static org.iq80.leveldb.benchmark.DbBenchmark.Order.RANDOM;
 import static org.iq80.leveldb.benchmark.DbBenchmark.Order.SEQUENTIAL;
 import static org.iq80.leveldb.impl.DbConstants.NUM_LEVELS;
 
-public class DbBenchmark
-{
+public class DbBenchmark {
     private final boolean useExisting;
     private final Integer writeBufferSize;
     private final File databaseDir;
     private final double compressionRatio;
     private long startTime;
 
-    enum Order
-    {
+    enum Order {
         SEQUENTIAL,
         RANDOM
     }
 
-    enum DBState
-    {
+    enum DBState {
         FRESH,
         EXISTING
     }
@@ -97,8 +94,7 @@ public class DbBenchmark
     private final DBFactory factory;
 
     public DbBenchmark(Map<Flag, Object> flags)
-            throws Exception
-    {
+            throws Exception {
         ClassLoader cl = DbBenchmark.class.getClassLoader();
         factory = (DBFactory) cl.loadClass(System.getProperty("leveldb.factory", "org.iq80.leveldb.impl.Iq80DBFactory")).newInstance();
         benchmarks = (List<String>) flags.get(Flag.benchmarks);
@@ -129,8 +125,7 @@ public class DbBenchmark
     }
 
     private void run()
-            throws IOException
-    {
+            throws IOException {
         printHeader();
         open();
 
@@ -141,76 +136,56 @@ public class DbBenchmark
 
             if (benchmark.equals("fillseq")) {
                 write(new WriteOptions(), SEQUENTIAL, FRESH, num, valueSize, 1);
-            }
-            else if (benchmark.equals("fillbatch")) {
+            } else if (benchmark.equals("fillbatch")) {
                 write(new WriteOptions(), SEQUENTIAL, FRESH, num, valueSize, 1000);
-            }
-            else if (benchmark.equals("fillrandom")) {
+            } else if (benchmark.equals("fillrandom")) {
                 write(new WriteOptions(), RANDOM, FRESH, num, valueSize, 1);
-            }
-            else if (benchmark.equals("overwrite")) {
+            } else if (benchmark.equals("overwrite")) {
                 write(new WriteOptions(), RANDOM, EXISTING, num, valueSize, 1);
-            }
-            else if (benchmark.equals("fillsync")) {
+            } else if (benchmark.equals("fillsync")) {
                 write(new WriteOptions().sync(true), RANDOM, FRESH, num / 1000, valueSize, 1);
-            }
-            else if (benchmark.equals("fill100K")) {
+            } else if (benchmark.equals("fill100K")) {
                 write(new WriteOptions(), RANDOM, FRESH, num / 1000, 100 * 1000, 1);
-            }
-            else if (benchmark.equals("readseq")) {
+            } else if (benchmark.equals("readseq")) {
                 readSequential();
-            }
-            else if (benchmark.equals("readreverse")) {
+            } else if (benchmark.equals("readreverse")) {
                 readReverse();
-            }
-            else if (benchmark.equals("readrandom")) {
+            } else if (benchmark.equals("readrandom")) {
                 readRandom();
-            }
-            else if (benchmark.equals("readhot")) {
+            } else if (benchmark.equals("readhot")) {
                 readHot();
-            }
-            else if (benchmark.equals("readrandomsmall")) {
+            } else if (benchmark.equals("readrandomsmall")) {
                 int n = reads;
                 reads /= 1000;
                 readRandom();
                 reads = n;
-            }
-            else if (benchmark.equals("compact")) {
+            } else if (benchmark.equals("compact")) {
                 compact();
-            }
-            else if (benchmark.equals("crc32c")) {
+            } else if (benchmark.equals("crc32c")) {
                 crc32c(4096, "(4k per op)");
-            }
-            else if (benchmark.equals("acquireload")) {
+            } else if (benchmark.equals("acquireload")) {
                 acquireLoad();
-            }
-            else if (benchmark.equals("snappycomp")) {
+            } else if (benchmark.equals("snappycomp")) {
                 if (Snappy.available()) {
                     snappyCompress();
                 }
-            }
-            else if (benchmark.equals("snappyuncomp")) {
+            } else if (benchmark.equals("snappyuncomp")) {
                 if (Snappy.available()) {
                     snappyUncompressDirectBuffer();
                 }
-            }
-            else if (benchmark.equals("unsnap-array")) {
+            } else if (benchmark.equals("unsnap-array")) {
                 if (Snappy.available()) {
                     snappyUncompressArray();
                 }
-            }
-            else if (benchmark.equals("unsnap-direct")) {
+            } else if (benchmark.equals("unsnap-direct")) {
                 if (Snappy.available()) {
                     snappyUncompressDirectBuffer();
                 }
-            }
-            else if (benchmark.equals("heapprofile")) {
+            } else if (benchmark.equals("heapprofile")) {
                 heapProfile();
-            }
-            else if (benchmark.equals("stats")) {
+            } else if (benchmark.equals("stats")) {
                 printStats();
-            }
-            else {
+            } else {
                 known = false;
                 System.err.println("Unknown benchmark: " + benchmark);
             }
@@ -222,8 +197,7 @@ public class DbBenchmark
     }
 
     private void printHeader()
-            throws IOException
-    {
+            throws IOException {
         int kKeySize = 16;
         printEnvironment();
         System.out.printf("Keys:       %d bytes each\n", kKeySize);
@@ -240,8 +214,7 @@ public class DbBenchmark
         System.out.printf("------------------------------------------------\n");
     }
 
-    static void printWarnings()
-    {
+    static void printWarnings() {
         boolean assertsEnabled = true;
         assert assertsEnabled; // Intentional side effect!!!
         if (assertsEnabled) {
@@ -253,20 +226,17 @@ public class DbBenchmark
         byte[] compressedText = null;
         try {
             compressedText = Snappy.compress(text);
-        }
-        catch (Exception ignored) {
+        } catch (Exception ignored) {
         }
         if (compressedText == null) {
             System.out.printf("WARNING: Snappy compression is not enabled\n");
-        }
-        else if (compressedText.length > text.length()) {
+        } else if (compressedText.length > text.length()) {
             System.out.printf("WARNING: Snappy compression is not effective\n");
         }
     }
 
     void printEnvironment()
-            throws IOException
-    {
+            throws IOException {
         System.out.printf("LevelDB:    %s\n", factory);
 
         System.out.printf("Date:       %tc\n", new Date());
@@ -287,8 +257,7 @@ public class DbBenchmark
                 if (key.equals("model name")) {
                     numberOfCpus++;
                     cpuType = value;
-                }
-                else if (key.equals("cache size")) {
+                } else if (key.equals("cache size")) {
                     cacheSize = value;
                 }
             }
@@ -298,8 +267,7 @@ public class DbBenchmark
     }
 
     private void open()
-            throws IOException
-    {
+            throws IOException {
         Options options = new Options();
         options.createIfMissing(!useExisting);
         // todo block cache
@@ -309,8 +277,7 @@ public class DbBenchmark
         db = factory.open(databaseDir, options);
     }
 
-    private void start()
-    {
+    private void start() {
         startTime = System.nanoTime();
         bytes = 0;
         message = null;
@@ -320,8 +287,7 @@ public class DbBenchmark
         nextReport = 100;
     }
 
-    private void stop(String benchmark)
-    {
+    private void stop(String benchmark) {
         long endTime = System.nanoTime();
         double elapsedSeconds = 1.0d * (endTime - startTime) / TimeUnit.SECONDS.toNanos(1);
 
@@ -335,12 +301,10 @@ public class DbBenchmark
             String rate = String.format("%6.1f MB/s", (bytes / 1048576.0) / elapsedSeconds);
             if (message != null) {
                 message = rate + " " + message;
-            }
-            else {
+            } else {
                 message = rate;
             }
-        }
-        else if (message == null) {
+        } else if (message == null) {
             message = "";
         }
 
@@ -361,8 +325,7 @@ public class DbBenchmark
     }
 
     private void write(WriteOptions writeOptions, Order order, DBState state, int numEntries, int valueSize, int entriesPerBatch)
-            throws IOException
-    {
+            throws IOException {
         if (state == FRESH) {
             if (useExisting) {
                 message = "skipping (--use_existing_db is true)";
@@ -393,8 +356,7 @@ public class DbBenchmark
         }
     }
 
-    public static byte[] formatNumber(long n)
-    {
+    public static byte[] formatNumber(long n) {
         checkArgument(n >= 0, "number must be positive");
 
         byte[] slice = new byte[16];
@@ -410,8 +372,7 @@ public class DbBenchmark
         return slice;
     }
 
-    private void finishedSingleOp()
-    {
+    private void finishedSingleOp() {
 //        if (histogram) {
 //            todo
 //        }
@@ -419,23 +380,17 @@ public class DbBenchmark
         if (done >= nextReport) {
             if (nextReport < 1000) {
                 nextReport += 100;
-            }
-            else if (nextReport < 5000) {
+            } else if (nextReport < 5000) {
                 nextReport += 500;
-            }
-            else if (nextReport < 10000) {
+            } else if (nextReport < 10000) {
                 nextReport += 1000;
-            }
-            else if (nextReport < 50000) {
+            } else if (nextReport < 50000) {
                 nextReport += 5000;
-            }
-            else if (nextReport < 100000) {
+            } else if (nextReport < 100000) {
                 nextReport += 10000;
-            }
-            else if (nextReport < 500000) {
+            } else if (nextReport < 500000) {
                 nextReport += 50000;
-            }
-            else {
+            } else {
                 nextReport += 100000;
             }
             System.out.printf("... finished %d ops%30s\r", done, "");
@@ -443,8 +398,7 @@ public class DbBenchmark
         }
     }
 
-    private void readSequential()
-    {
+    private void readSequential() {
         for (int loops = 0; loops < 5; loops++) {
             DBIterator iterator = db.iterator();
             for (int i = 0; i < reads && iterator.hasNext(); i++) {
@@ -456,13 +410,11 @@ public class DbBenchmark
         }
     }
 
-    private void readReverse()
-    {
+    private void readReverse() {
         //To change body of created methods use File | Settings | File Templates.
     }
 
-    private void readRandom()
-    {
+    private void readRandom() {
         for (int i = 0; i < reads; i++) {
             byte[] key = formatNumber(random.nextInt(num));
             byte[] value = db.get(key);
@@ -474,8 +426,7 @@ public class DbBenchmark
         }
     }
 
-    private void readHot()
-    {
+    private void readHot() {
         int range = (num + 99) / 100;
         for (int i = 0; i < reads; i++) {
             byte[] key = formatNumber(random.nextInt(range));
@@ -486,8 +437,7 @@ public class DbBenchmark
     }
 
     private void compact()
-            throws IOException
-    {
+            throws IOException {
         if (db instanceof DbImpl) {
             ((DbImpl) db).compactMemTable();
             for (int level = 0; level < NUM_LEVELS - 1; level++) {
@@ -496,8 +446,7 @@ public class DbBenchmark
         }
     }
 
-    private void crc32c(int blockSize, String message)
-    {
+    private void crc32c(int blockSize, String message) {
         // Checksum about 500MB of data total
         byte[] data = new byte[blockSize];
         for (int i = 0; i < data.length; i++) {
@@ -521,13 +470,11 @@ public class DbBenchmark
         this.message = message;
     }
 
-    private void acquireLoad()
-    {
+    private void acquireLoad() {
         //To change body of created methods use File | Settings | File Templates.
     }
 
-    private void snappyCompress()
-    {
+    private void snappyCompress() {
         byte[] raw = generator.generate(new Options().blockSize());
         byte[] compressedOutput = new byte[Snappy.maxCompressedLength(raw.length)];
 
@@ -539,8 +486,7 @@ public class DbBenchmark
                 int compressedSize = Snappy.compress(raw, 0, raw.length, compressedOutput, 0);
                 bytes += raw.length;
                 produced += compressedSize;
-            }
-            catch (IOException ignored) {
+            } catch (IOException ignored) {
                 throw Throwables.propagate(ignored);
             }
 
@@ -550,16 +496,14 @@ public class DbBenchmark
         message = String.format("(output: %.1f%%)", (produced * 100.0) / bytes);
     }
 
-    private void snappyUncompressArray()
-    {
+    private void snappyUncompressArray() {
         int inputSize = new Options().blockSize();
         byte[] compressedOutput = new byte[Snappy.maxCompressedLength(inputSize)];
         byte[] raw = generator.generate(inputSize);
         int compressedLength;
         try {
             compressedLength = Snappy.compress(raw, 0, raw.length, compressedOutput, 0);
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             throw Throwables.propagate(e);
         }
         // attempt to uncompress the block
@@ -567,8 +511,7 @@ public class DbBenchmark
             try {
                 Snappy.uncompress(compressedOutput, 0, compressedLength, raw, 0);
                 bytes += inputSize;
-            }
-            catch (IOException ignored) {
+            } catch (IOException ignored) {
                 throw Throwables.propagate(ignored);
             }
 
@@ -576,16 +519,14 @@ public class DbBenchmark
         }
     }
 
-    private void snappyUncompressDirectBuffer()
-    {
+    private void snappyUncompressDirectBuffer() {
         int inputSize = new Options().blockSize();
         byte[] compressedOutput = new byte[Snappy.maxCompressedLength(inputSize)];
         byte[] raw = generator.generate(inputSize);
         int compressedLength;
         try {
             compressedLength = Snappy.compress(raw, 0, raw.length, compressedOutput, 0);
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             throw Throwables.propagate(e);
         }
 
@@ -601,8 +542,7 @@ public class DbBenchmark
                 compressedBuffer.limit(compressedLength);
                 Snappy.uncompress(compressedBuffer, uncompressedBuffer);
                 bytes += inputSize;
-            }
-            catch (IOException ignored) {
+            } catch (IOException ignored) {
                 throw Throwables.propagate(ignored);
             }
 
@@ -610,26 +550,22 @@ public class DbBenchmark
         }
     }
 
-    private void heapProfile()
-    {
+    private void heapProfile() {
         //To change body of created methods use File | Settings | File Templates.
     }
 
-    private void destroyDb()
-    {
+    private void destroyDb() {
         Closeables.closeQuietly(db);
         db = null;
         FileUtils.deleteRecursively(databaseDir);
     }
 
-    private void printStats()
-    {
+    private void printStats() {
         //To change body of created methods use File | Settings | File Templates.
     }
 
     public static void main(String[] args)
-            throws Exception
-    {
+            throws Exception {
         Map<Flag, Object> flags = new EnumMap<>(Flag.class);
         for (Flag flag : Flag.values()) {
             flags.put(flag, flag.getDefaultValue());
@@ -643,8 +579,7 @@ public class DbBenchmark
                     Object value = key.parseValue(parts.get(1));
                     flags.put(key, value);
                     valid = true;
-                }
-                catch (Exception e) {
+                } catch (Exception e) {
                 }
             }
 
@@ -657,8 +592,7 @@ public class DbBenchmark
         new DbBenchmark(flags).run();
     }
 
-    private enum Flag
-    {
+    private enum Flag {
         // Comma-separated list of operations to run in the specified order
         //   Actual benchmarks:
         //      fillseq       -- write N values in sequential key order in async mode
@@ -698,142 +632,116 @@ public class DbBenchmark
                 "unsnap-array",
                 "unsnap-direct"
                 // "acquireload"
-        ))
-                {
-                    @Override
-                    public Object parseValue(String value)
-                    {
-                        return ImmutableList.copyOf(Splitter.on(",").trimResults().omitEmptyStrings().split(value));
-                    }
-                },
+        )) {
+            @Override
+            public Object parseValue(String value) {
+                return ImmutableList.copyOf(Splitter.on(",").trimResults().omitEmptyStrings().split(value));
+            }
+        },
 
         // Arrange to generate values that shrink to this fraction of
         // their original size after compression
-        compression_ratio(0.5d)
-                {
-                    @Override
-                    public Object parseValue(String value)
-                    {
-                        return Double.parseDouble(value);
-                    }
-                },
+        compression_ratio(0.5d) {
+            @Override
+            public Object parseValue(String value) {
+                return Double.parseDouble(value);
+            }
+        },
 
         // Print histogram of operation timings
-        histogram(false)
-                {
-                    @Override
-                    public Object parseValue(String value)
-                    {
-                        return Boolean.parseBoolean(value);
-                    }
-                },
+        histogram(false) {
+            @Override
+            public Object parseValue(String value) {
+                return Boolean.parseBoolean(value);
+            }
+        },
 
         // If true, do not destroy the existing database.  If you set this
         // flag and also specify a benchmark that wants a fresh database, that
         // benchmark will fail.
-        use_existing_db(false)
-                {
-                    @Override
-                    public Object parseValue(String value)
-                    {
-                        return Boolean.parseBoolean(value);
-                    }
-                },
+        use_existing_db(false) {
+            @Override
+            public Object parseValue(String value) {
+                return Boolean.parseBoolean(value);
+            }
+        },
 
         // Number of key/values to place in database
-        num(1000000)
-                {
-                    @Override
-                    public Object parseValue(String value)
-                    {
-                        return Integer.parseInt(value);
-                    }
-                },
+        num(1000000) {
+            @Override
+            public Object parseValue(String value) {
+                return Integer.parseInt(value);
+            }
+        },
 
         // Number of read operations to do.  If negative, do FLAGS_num reads.
-        reads(null)
-                {
-                    @Override
-                    public Object parseValue(String value)
-                    {
-                        return Integer.parseInt(value);
-                    }
-                },
+        reads(null) {
+            @Override
+            public Object parseValue(String value) {
+                return Integer.parseInt(value);
+            }
+        },
 
         // Size of each value
-        value_size(100)
-                {
-                    @Override
-                    public Object parseValue(String value)
-                    {
-                        return Integer.parseInt(value);
-                    }
-                },
+        value_size(100) {
+            @Override
+            public Object parseValue(String value) {
+                return Integer.parseInt(value);
+            }
+        },
 
         // Number of bytes to buffer in memtable before compacting
         // (initialized to default value by "main")
-        write_buffer_size(null)
-                {
-                    @Override
-                    public Object parseValue(String value)
-                    {
-                        return Integer.parseInt(value);
-                    }
-                },
+        write_buffer_size(null) {
+            @Override
+            public Object parseValue(String value) {
+                return Integer.parseInt(value);
+            }
+        },
 
         // Number of bytes to use as a cache of uncompressed data.
         // Negative means use default settings.
-        cache_size(-1)
-                {
-                    @Override
-                    public Object parseValue(String value)
-                    {
-                        return Integer.parseInt(value);
-                    }
-                },
+        cache_size(-1) {
+            @Override
+            public Object parseValue(String value) {
+                return Integer.parseInt(value);
+            }
+        },
 
         // Maximum number of files to keep open at the same time (use default if == 0)
-        open_files(0)
-                {
-                    @Override
-                    public Object parseValue(String value)
-                    {
-                        return Integer.parseInt(value);
-                    }
-                },
+        open_files(0) {
+            @Override
+            public Object parseValue(String value) {
+                return Integer.parseInt(value);
+            }
+        },
 
         // Use the db with the following name.
-        db("/tmp/dbbench")
-                {
-                    @Override
-                    public Object parseValue(String value)
-                    {
-                        return value;
-                    }
-                };
+        db("/tmp/dbbench") {
+            @Override
+            public Object parseValue(String value) {
+                return value;
+            }
+        };
 
         private final Object defaultValue;
 
-        Flag(Object defaultValue)
-        {
+        Flag(Object defaultValue) {
             this.defaultValue = defaultValue;
         }
 
         protected abstract Object parseValue(String value);
 
-        public Object getDefaultValue()
-        {
+        public Object getDefaultValue() {
             return defaultValue;
         }
     }
 
-    private static class RandomGenerator
-    {
+    private static class RandomGenerator {
         private final Slice data;
         private int position;
 
-        private RandomGenerator(double compressionRatio)
-        {
+        private RandomGenerator(double compressionRatio) {
             // We use a limited amount of data over and over again and ensure
             // that it is larger than the compression window (32KB), and also
             // large enough to serve all typical value sizes we want to write.
@@ -847,8 +755,7 @@ public class DbBenchmark
             }
         }
 
-        private byte[] generate(int length)
-        {
+        private byte[] generate(int length) {
             if (position + length > data.length()) {
                 position = 0;
                 assert (length < data.length());
@@ -859,8 +766,7 @@ public class DbBenchmark
         }
     }
 
-    private static Slice compressibleString(Random rnd, double compressionRatio, int len)
-    {
+    private static Slice compressibleString(Random rnd, double compressionRatio, int len) {
         int raw = (int) (len * compressionRatio);
         if (raw < 1) {
             raw = 1;
@@ -876,8 +782,7 @@ public class DbBenchmark
         return dst;
     }
 
-    private static Slice generateRandomSlice(Random random, int length)
-    {
+    private static Slice generateRandomSlice(Random random, int length) {
         Slice rawData = Slices.allocate(length);
         SliceOutput sliceOutput = rawData.output();
         while (sliceOutput.isWritable()) {
