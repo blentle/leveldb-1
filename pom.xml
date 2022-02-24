@@ -83,29 +83,4 @@
         </dependencies>
     </dependencyManagement>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-checkstyle-plugin</artifactId>
-                <version>3.1.0</version>
-                <executions>
-                    <execution>
-                        <phase>validate</phase>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
-                        <configuration>
-                            <skip>${air.check.skip-checkstyle}</skip>
-                            <failOnViolation>${air.check.fail-checkstyle}</failOnViolation>
-                            <consoleOutput>true</consoleOutput>
-                            <includeTestSourceDirectory>true</includeTestSourceDirectory>
-                            <configLocation>${air.main.basedir}/src/checkstyle/checks.xml</configLocation>
-                            <excludes>**/com/facebook/presto/operator/PagesIndexOrdering.java</excludes>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
 </project>

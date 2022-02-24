@@ -27,34 +27,29 @@ import java.util.List;
 import static java.util.Arrays.asList;
 import static org.testng.Assert.assertEquals;
 
-public class BlockTest
-{
+public class BlockTest {
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void testEmptyBuffer()
-            throws Exception
-    {
+            throws Exception {
         new Block(Slices.EMPTY_SLICE, new BytewiseComparator());
     }
 
     @Test
     public void testEmptyBlock()
-            throws Exception
-    {
+            throws Exception {
         blockTest(Integer.MAX_VALUE);
     }
 
     @Test
     public void testSingleEntry()
-            throws Exception
-    {
+            throws Exception {
         blockTest(Integer.MAX_VALUE,
                 BlockHelper.createBlockEntry("name", "dain sundstrom"));
     }
 
     @Test
     public void testMultipleEntriesWithNonSharedKey()
-            throws Exception
-    {
+            throws Exception {
         blockTest(Integer.MAX_VALUE,
                 BlockHelper.createBlockEntry("beer", "Lagunitas IPA"),
                 BlockHelper.createBlockEntry("scotch", "Highland Park"));
@@ -62,8 +57,7 @@ public class BlockTest
 
     @Test
     public void testMultipleEntriesWithSharedKey()
-            throws Exception
-    {
+            throws Exception {
         blockTest(Integer.MAX_VALUE,
                 BlockHelper.createBlockEntry("beer/ale", "Lagunitas  Little Sumpin’ Sumpin’"),
                 BlockHelper.createBlockEntry("beer/ipa", "Lagunitas IPA"),
@@ -72,8 +66,7 @@ public class BlockTest
 
     @Test
     public void testMultipleEntriesWithNonSharedKeyAndRestartPositions()
-            throws Exception
-    {
+            throws Exception {
         List<BlockEntry> entries = asList(
                 BlockHelper.createBlockEntry("ale", "Lagunitas  Little Sumpin’ Sumpin’"),
                 BlockHelper.createBlockEntry("ipa", "Lagunitas IPA"),
@@ -87,8 +80,7 @@ public class BlockTest
 
     @Test
     public void testMultipleEntriesWithSharedKeyAndRestartPositions()
-            throws Exception
-    {
+            throws Exception {
         List<BlockEntry> entries = asList(
                 BlockHelper.createBlockEntry("beer/ale", "Lagunitas  Little Sumpin’ Sumpin’"),
                 BlockHelper.createBlockEntry("beer/ipa", "Lagunitas IPA"),
@@ -102,13 +94,11 @@ public class BlockTest
         }
     }
 
-    private static void blockTest(int blockRestartInterval, BlockEntry... entries)
-    {
+    private static void blockTest(int blockRestartInterval, BlockEntry... entries) {
         blockTest(blockRestartInterval, asList(entries));
     }
 
-    private static void blockTest(int blockRestartInterval, List<BlockEntry> entries)
-    {
+    private static void blockTest(int blockRestartInterval, List<BlockEntry> entries) {
         BlockBuilder builder = new BlockBuilder(256, blockRestartInterval, new BytewiseComparator());
 
         for (BlockEntry entry : entries) {
@@ -140,7 +130,7 @@ public class BlockTest
             BlockHelper.assertSequence(blockIterator, nextEntries.subList(1, nextEntries.size()));
         }
 
-        blockIterator.seek(Slices.wrappedBuffer(new byte[] {(byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF}));
+        blockIterator.seek(Slices.wrappedBuffer(new byte[]{(byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF}));
         BlockHelper.assertSequence(blockIterator, Collections.<BlockEntry>emptyList());
     }
 }
