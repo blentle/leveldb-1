@@ -39,28 +39,24 @@ import static org.testng.Assert.assertTrue;
 /**
  * @author <a href="http://hiramchirino.com">Hiram Chirino</a>
  */
-public class NativeInteropTest
-{
+public class NativeInteropTest {
     private static final AtomicInteger NEXT_ID = new AtomicInteger();
 
     private final File databaseDir = FileUtils.createTempDir("leveldb");
 
-    public static void assertEquals(byte[] arg1, byte[] arg2)
-    {
+    public static void assertEquals(byte[] arg1, byte[] arg2) {
         assertTrue(Arrays.equals(arg1, arg2), asString(arg1) + " != " + asString(arg2));
     }
 
     private final DBFactory iq80factory = Iq80DBFactory.factory;
     private final DBFactory jnifactory;
 
-    public NativeInteropTest()
-    {
+    public NativeInteropTest() {
         DBFactory jnifactory = Iq80DBFactory.factory;
         try {
             ClassLoader cl = NativeInteropTest.class.getClassLoader();
             jnifactory = (DBFactory) cl.loadClass("org.fusesource.leveldbjni.JniDBFactory").newInstance();
-        }
-        catch (Throwable e) {
+        } catch (Throwable e) {
             // We cannot create a JniDBFactory on windows :( so just use a Iq80DBFactory for both
             // to avoid test failures.
         }
@@ -68,8 +64,7 @@ public class NativeInteropTest
     }
 
     File getTestDirectory(String name)
-            throws IOException
-    {
+            throws IOException {
         File rc = new File(databaseDir, name);
         iq80factory.destroy(rc, new Options().createIfMissing(true));
         rc.mkdirs();
@@ -78,35 +73,30 @@ public class NativeInteropTest
 
     @Test
     public void testCRUDviaIQ80()
-            throws IOException, DBException
-    {
+            throws IOException, DBException {
         crud(iq80factory, iq80factory);
     }
 
     @Test
     public void testCRUDviaJNI()
-            throws IOException, DBException
-    {
+            throws IOException, DBException {
         crud(jnifactory, jnifactory);
     }
 
     @Test
     public void testCRUDviaIQ80thenJNI()
-            throws IOException, DBException
-    {
+            throws IOException, DBException {
         crud(iq80factory, jnifactory);
     }
 
     @Test
     public void testCRUDviaJNIthenIQ80()
-            throws IOException, DBException
-    {
+            throws IOException, DBException {
         crud(jnifactory, iq80factory);
     }
 
     public void crud(DBFactory firstFactory, DBFactory secondFactory)
-            throws IOException, DBException
-    {
+            throws IOException, DBException {
         Options options = new Options().createIfMissing(true);
 
         File path = getTestDirectory(getClass().getName() + "_" + NEXT_ID.incrementAndGet());
