@@ -31,8 +31,7 @@ import static com.google.common.base.Preconditions.checkState;
 import static java.util.Objects.requireNonNull;
 import static org.iq80.leveldb.util.SizeOf.SIZE_OF_INT;
 
-public class BlockBuilder
-{
+public class BlockBuilder {
     private final int blockRestartInterval;
     private final IntVector restartPositions;
     private final Comparator<Slice> comparator;
@@ -44,8 +43,7 @@ public class BlockBuilder
     private final DynamicSliceOutput block;
     private Slice lastKey;
 
-    public BlockBuilder(int estimatedSize, int blockRestartInterval, Comparator<Slice> comparator)
-    {
+    public BlockBuilder(int estimatedSize, int blockRestartInterval, Comparator<Slice> comparator) {
         checkArgument(estimatedSize >= 0, "estimatedSize is negative");
         checkArgument(blockRestartInterval >= 0, "blockRestartInterval is negative");
         requireNonNull(comparator, "comparator is null");
@@ -58,8 +56,7 @@ public class BlockBuilder
         restartPositions.add(0);  // first restart point must be 0
     }
 
-    public void reset()
-    {
+    public void reset() {
         block.reset();
         entryCount = 0;
         restartPositions.clear();
@@ -69,18 +66,15 @@ public class BlockBuilder
         finished = false;
     }
 
-    public int getEntryCount()
-    {
+    public int getEntryCount() {
         return entryCount;
     }
 
-    public boolean isEmpty()
-    {
+    public boolean isEmpty() {
         return entryCount == 0;
     }
 
-    public int currentSizeEstimate()
-    {
+    public int currentSizeEstimate() {
         // no need to estimate if closed
         if (finished) {
             return block.size();
@@ -96,14 +90,12 @@ public class BlockBuilder
                 SIZE_OF_INT;                               // restart position size
     }
 
-    public void add(BlockEntry blockEntry)
-    {
+    public void add(BlockEntry blockEntry) {
         requireNonNull(blockEntry, "blockEntry is null");
         add(blockEntry.getKey(), blockEntry.getValue());
     }
 
-    public void add(Slice key, Slice value)
-    {
+    public void add(Slice key, Slice value) {
         requireNonNull(key, "key is null");
         requireNonNull(value, "value is null");
         checkState(!finished, "block is finished");
@@ -114,8 +106,7 @@ public class BlockBuilder
         int sharedKeyBytes = 0;
         if (restartBlockEntryCount < blockRestartInterval) {
             sharedKeyBytes = calculateSharedBytes(key, lastKey);
-        }
-        else {
+        } else {
             // restart prefix compression
             restartPositions.add(block.size());
             restartBlockEntryCount = 0;
@@ -142,8 +133,7 @@ public class BlockBuilder
         restartBlockEntryCount++;
     }
 
-    public static int calculateSharedBytes(Slice leftKey, Slice rightKey)
-    {
+    public static int calculateSharedBytes(Slice leftKey, Slice rightKey) {
         int sharedKeyBytes = 0;
 
         if (leftKey != null && rightKey != null) {
@@ -156,16 +146,14 @@ public class BlockBuilder
         return sharedKeyBytes;
     }
 
-    public Slice finish()
-    {
+    public Slice finish() {
         if (!finished) {
             finished = true;
 
             if (entryCount > 0) {
                 restartPositions.write(block);
                 block.writeInt(restartPositions.size());
-            }
-            else {
+            } else {
                 block.writeInt(0);
             }
         }

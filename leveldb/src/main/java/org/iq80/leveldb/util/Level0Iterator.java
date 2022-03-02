@@ -34,14 +34,12 @@ import java.util.PriorityQueue;
 
 public final class Level0Iterator
         extends AbstractSeekingIterator<InternalKey, Slice>
-        implements InternalIterator
-{
+        implements InternalIterator {
     private final List<InternalTableIterator> inputs;
     private final PriorityQueue<ComparableIterator> priorityQueue;
     private final Comparator<InternalKey> comparator;
 
-    public Level0Iterator(TableCache tableCache, List<FileMetaData> files, Comparator<InternalKey> comparator)
-    {
+    public Level0Iterator(TableCache tableCache, List<FileMetaData> files, Comparator<InternalKey> comparator) {
         Builder<InternalTableIterator> builder = ImmutableList.builder();
         for (FileMetaData file : files) {
             builder.add(tableCache.newIterator(file));
@@ -53,8 +51,7 @@ public final class Level0Iterator
         resetPriorityQueue(comparator);
     }
 
-    public Level0Iterator(List<InternalTableIterator> inputs, Comparator<InternalKey> comparator)
-    {
+    public Level0Iterator(List<InternalTableIterator> inputs, Comparator<InternalKey> comparator) {
         this.inputs = inputs;
         this.comparator = comparator;
 
@@ -63,8 +60,7 @@ public final class Level0Iterator
     }
 
     @Override
-    protected void seekToFirstInternal()
-    {
+    protected void seekToFirstInternal() {
         for (InternalTableIterator input : inputs) {
             input.seekToFirst();
         }
@@ -72,16 +68,14 @@ public final class Level0Iterator
     }
 
     @Override
-    protected void seekInternal(InternalKey targetKey)
-    {
+    protected void seekInternal(InternalKey targetKey) {
         for (InternalTableIterator input : inputs) {
             input.seek(targetKey);
         }
         resetPriorityQueue(comparator);
     }
 
-    private void resetPriorityQueue(Comparator<InternalKey> comparator)
-    {
+    private void resetPriorityQueue(Comparator<InternalKey> comparator) {
         int i = 0;
         for (InternalTableIterator input : inputs) {
             if (input.hasNext()) {
@@ -91,8 +85,7 @@ public final class Level0Iterator
     }
 
     @Override
-    protected Entry<InternalKey, Slice> getNextElement()
-    {
+    protected Entry<InternalKey, Slice> getNextElement() {
         Entry<InternalKey, Slice> result = null;
         ComparableIterator nextIterator = priorityQueue.poll();
         if (nextIterator != null) {
@@ -105,8 +98,7 @@ public final class Level0Iterator
     }
 
     @Override
-    public String toString()
-    {
+    public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("MergingIterator");
         sb.append("{inputs=").append(Iterables.toString(inputs));
@@ -116,15 +108,13 @@ public final class Level0Iterator
     }
 
     private static class ComparableIterator
-            implements Iterator<Entry<InternalKey, Slice>>, Comparable<ComparableIterator>
-    {
+            implements Iterator<Entry<InternalKey, Slice>>, Comparable<ComparableIterator> {
         private final SeekingIterator<InternalKey, Slice> iterator;
         private final Comparator<InternalKey> comparator;
         private final int ordinal;
         private Entry<InternalKey, Slice> nextElement;
 
-        private ComparableIterator(SeekingIterator<InternalKey, Slice> iterator, Comparator<InternalKey> comparator, int ordinal, Entry<InternalKey, Slice> nextElement)
-        {
+        private ComparableIterator(SeekingIterator<InternalKey, Slice> iterator, Comparator<InternalKey> comparator, int ordinal, Entry<InternalKey, Slice> nextElement) {
             this.iterator = iterator;
             this.comparator = comparator;
             this.ordinal = ordinal;
@@ -132,14 +122,12 @@ public final class Level0Iterator
         }
 
         @Override
-        public boolean hasNext()
-        {
+        public boolean hasNext() {
             return nextElement != null;
         }
 
         @Override
-        public Entry<InternalKey, Slice> next()
-        {
+        public Entry<InternalKey, Slice> next() {
             if (nextElement == null) {
                 throw new NoSuchElementException();
             }
@@ -147,22 +135,19 @@ public final class Level0Iterator
             Entry<InternalKey, Slice> result = nextElement;
             if (iterator.hasNext()) {
                 nextElement = iterator.next();
-            }
-            else {
+            } else {
                 nextElement = null;
             }
             return result;
         }
 
         @Override
-        public void remove()
-        {
+        public void remove() {
             throw new UnsupportedOperationException();
         }
 
         @Override
-        public boolean equals(Object o)
-        {
+        public boolean equals(Object o) {
             if (this == o) {
                 return true;
             }
@@ -183,16 +168,14 @@ public final class Level0Iterator
         }
 
         @Override
-        public int hashCode()
-        {
+        public int hashCode() {
             int result = ordinal;
             result = 31 * result + (nextElement != null ? nextElement.hashCode() : 0);
             return result;
         }
 
         @Override
-        public int compareTo(ComparableIterator that)
-        {
+        public int compareTo(ComparableIterator that) {
             int result = comparator.compare(this.nextElement.getKey(), that.nextElement.getKey());
             if (result == 0) {
                 result = Integer.compare(this.ordinal, that.ordinal);
